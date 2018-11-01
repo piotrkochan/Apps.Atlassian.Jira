@@ -5,8 +5,11 @@ import { IApiEndpointInfo } from '@rocket.chat/apps-engine/definition/api/IApiEn
 // import { IApp } from '@rocket.chat/apps-engine/definition/IApp';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { resolve as resolveUrl } from 'url';
+
+import { AppInfoEnum } from './enums/AppInfoEnum';
 import * as jwt from './jwt';
 
+// import { IApp } from '@rocket.chat/apps-engine/definition/IApp';
 export class ManifestEndpoint extends ApiEndpoint {
     public path: string = 'manifest.json';
 
@@ -21,7 +24,7 @@ export class ManifestEndpoint extends ApiEndpoint {
             status: HttpStatusCode.OK,
             content: {
                 baseUrl: resolveUrl(siteUrl, endpoint.basePath),
-                key: 'com.chat.rocket.jira.plugin',
+                key: AppInfoEnum.AppKey,
                 name: 'Rocket.Chat',
                 description: 'Rocket.Chat integration',
                 vendor: {
