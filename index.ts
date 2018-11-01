@@ -5,6 +5,7 @@ import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
 
 import { settings } from './app-settings';
 import { AuthEndpoint, InstallEndpoint, ManifestEndpoint, SampleEndpoint } from './endpoints';
+import { JiraSlashcommand } from './JiraSlashcommand';
 import { OnCommentEndpoint } from './onComment';
 import { OnIssueEndpoint } from './onIssue';
 
@@ -30,5 +31,7 @@ export class JiraApp extends App {
         });
 
         await Promise.all(settings.map((setting) => configuration.settings.provideSetting(setting)));
+
+        await configuration.slashCommands.provideSlashCommand(new JiraSlashcommand(this));
     }
 }
