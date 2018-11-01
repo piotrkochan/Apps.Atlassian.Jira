@@ -5,6 +5,7 @@ import { ISlashCommand, SlashCommandContext } from '@rocket.chat/apps-engine/def
 import { CommandEnum } from './enums/CommandEnum';
 import { getUrlAndAuthToken, startNewMessageWithDefaultSenderConfig } from './helpers';
 
+import { URL } from 'url';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
@@ -61,16 +62,43 @@ export class JiraSlashcommand implements ISlashCommand {
 
         const [, argument] = context.getArguments();
 
-        let text = `Not implemented ${argument}`;
-
         if (!argument) {
-            const { url, token } = await getUrlAndAuthToken(read, '/rest/api/3/project/search');
-            const response = await http.get(`${url}`, { headers: { Authorization: `JWT ${token}` } });
-            msg.addAttachment({ title: { value: url }, text: response.content });
-            this.app.getLogger().debug('processConnectCommand', { response });
-        }
+            const { url, token } = await getUrlAndAuthToken(read, '/rest/api/3/project/search?expand=description');
+            const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
 
-        msg.setText(text);
+            const jiraResponse = JSON.parse(response.content || '{}');
+            let messageText: string;
+
+            if (jiraResponse.total) {
+                const { origin: baseUrl } = new URL(url);
+
+                jiraResponse.values.forEach((project) => msg.addAttachment({
+                    title: {
+                        value: `${project.key} - ${project.name}`,
+                        link: `${baseUrl}/browse/${project.key}`,
+                    },
+                    text: project.description,
+                }));
+
+                messageText =
+                    `You can connect to additional projects by typing \`/jira connect PROJECT_KEY\`
+
+                    These are the currently available projects for you to connect to:`;
+            } else {
+                messageText = 'There are currently no available projects for you to connect :/';
+            }
+
+            msg.setText(messageText);
+
+            this.app.getLogger().debug('processConnectCommand', { response });
+        } else {
+            const { url, token } = await getUrlAndAuthToken(read, `/rest/api/3/project/search?query=${argument}`);
+            const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
+
+            const jiraResponse = JSON.parse(response.content || '{}');
+
+            msg.addAttachment({ text: JSON.stringify(jiraResponse, null, 4)});
+        }
 
         modify.getCreator().finish(msg);
     }
