@@ -2,7 +2,6 @@ import { HttpStatusCode, IHttp, IModify, IPersistence, IRead } from '@rocket.cha
 import { example, IApiRequest, IApiResponse } from '@rocket.chat/apps-engine/definition/api';
 import { ApiEndpoint } from '@rocket.chat/apps-engine/definition/api/ApiEndpoint';
 import { IApiEndpointInfo } from '@rocket.chat/apps-engine/definition/api/IApiEndpointInfo';
-// import { IApp } from '@rocket.chat/apps-engine/definition/IApp';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { resolve as resolveUrl } from 'url';
 
@@ -203,7 +202,9 @@ export class InstallEndpoint extends ApiEndpoint {
     public async post(request: IApiRequest, endpoint: IApiEndpointInfo, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<IApiResponse> {
         this.app.getLogger().log(request);
         const association = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'auth');
-        // TODO: Need to remove the old one
+
+        await persis.removeByAssociation(association);
+
         await persis.createWithAssociation({
             clientKey: request.content.clientKey,
             publicKey: request.content.publicKey,
