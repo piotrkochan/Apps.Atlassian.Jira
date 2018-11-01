@@ -4,6 +4,7 @@ import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { IUser } from '@rocket.chat/apps-engine/definition/users';
 
 import { AppSetting } from './app-settings';
+import { AppInfoEnum } from './enums/AppInfoEnum';
 import * as jwt from './jwt';
 
 export async function startNewMessageWithDefaultSenderConfig(modify: IModify, read: IRead, sender: IUser, room: IRoom): Promise<IMessageBuilder> {
@@ -30,10 +31,12 @@ export async function getUrlAndAuthToken(read: IRead, path: string, method: stri
     const authData: any = records[0];
     const req: jwt.IRequest = jwt.fromMethodAndUrl(method, path);
 
+    const now = Math.floor((new Date()).getTime() / 1000);
+
     const tokenData = {
-        iss: 'rocketchat',
-        iat: Date.now() / 1000,
-        exp: Date.now() / 1000 + 60 * 3,
+        iss: AppInfoEnum.AppKey,
+        iat: now,
+        exp: now + 60 * 3,
         qsh: jwt.createQueryStringHash(req),
     };
 
