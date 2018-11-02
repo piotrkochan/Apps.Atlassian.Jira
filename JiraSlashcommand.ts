@@ -63,7 +63,7 @@ export class JiraSlashcommand implements ISlashCommand {
         const sender = await read.getUserReader().getById('rocket.cat');
         const room = context.getRoom();
 
-        const connectedProjects = await getConnectedProjects(read.getPersistenceReader(), room);
+        const { connectedProjects } = await getConnectedProjects(read.getPersistenceReader(), room);
 
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 

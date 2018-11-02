@@ -1,4 +1,10 @@
-import { IMessageBuilder, IModify, IPersistenceRead, IRead, IPersistence } from '@rocket.chat/apps-engine/definition/accessors';
+import {
+    IMessageBuilder,
+    IModify,
+    IPersistence,
+    IPersistenceRead,
+    IRead,
+} from '@rocket.chat/apps-engine/definition/accessors';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { IUser } from '@rocket.chat/apps-engine/definition/users';
@@ -48,12 +54,21 @@ export async function getUrlAndAuthToken(read: IRead, path: string, method: stri
     };
 }
 
-export async function getConnectedProjects(persistence: IPersistenceRead, room: IRoom): Promise<object> {
-    const roomAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.ROOM, room.id);
-    const projectsAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'projects');
-    const records = await persistence.readByAssociations([roomAssociation, projectsAssociation]);
+interface IConnectedProjectsRecord {
+    room: string;
+    connectedProjects: object;
+}
 
-    return records[0] || {};
+export async function getConnectedProjects(persistence: IPersistenceRead, room?: IRoom): Promise<IConnectedProjectsRecord> {
+    const associations = [new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'projects')];
+
+    if (room) {
+        associations.push(new RocketChatAssociationRecord(RocketChatAssociationModel.ROOM, room.id));
+    }
+
+    const records = await persistence.readByAssociations(associations);
+
+    return (records[0] as IConnectedProjectsRecord) || { room: '', connectedProjects: {} };
 }
 
 export async function persistConnectedProjects(persis: IPersistence, room: IRoom, connectedProjects: object): Promise<void> {
@@ -62,5 +77,5 @@ export async function persistConnectedProjects(persis: IPersistence, room: IRoom
 
     await persis.removeByAssociations([roomAssociation, projectsAssociation]);
 
-    await persis.createWithAssociations(connectedProjects, [roomAssociation, projectsAssociation]);
+    await persis.createWithAssociations({ room: room.id, connectedProjects }, [roomAssociation, projectsAssociation]);
 }
