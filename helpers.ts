@@ -59,16 +59,14 @@ interface IConnectedProjectsRecord {
     connectedProjects: object;
 }
 
-export async function getConnectedProjects(persistence: IPersistenceRead, room?: IRoom): Promise<IConnectedProjectsRecord> {
+export async function getConnectedProjects(persistence: IPersistenceRead, room?: IRoom): Promise<Array<IConnectedProjectsRecord>> {
     const associations = [new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'projects')];
 
     if (room) {
         associations.push(new RocketChatAssociationRecord(RocketChatAssociationModel.ROOM, room.id));
     }
 
-    const records = await persistence.readByAssociations(associations);
-
-    return (records[0] as IConnectedProjectsRecord) || { room: '', connectedProjects: {} };
+    return await persistence.readByAssociations(associations) as Array<IConnectedProjectsRecord>;
 }
 
 export async function persistConnectedProjects(persis: IPersistence, room: IRoom, connectedProjects: object): Promise<void> {
