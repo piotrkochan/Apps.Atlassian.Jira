@@ -1,11 +1,15 @@
-import { IHttp, IModify, IRead } from '@rocket.chat/apps-engine/definition/accessors';
+import { IHttp, IModify, IPersistence, IRead } from '@rocket.chat/apps-engine/definition/accessors';
 import { IApp } from '@rocket.chat/apps-engine/definition/IApp';
 import { ISlashCommand, SlashCommandContext } from '@rocket.chat/apps-engine/definition/slashcommands';
+import { URL } from 'url';
 
 import { CommandEnum } from './enums/CommandEnum';
-import { getUrlAndAuthToken, startNewMessageWithDefaultSenderConfig } from './helpers';
-
-import { URL } from 'url';
+import {
+    getConnectedProjects,
+    getUrlAndAuthToken,
+    persistConnectedProjects,
+    startNewMessageWithDefaultSenderConfig,
+} from './helpers';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
@@ -15,7 +19,7 @@ export class JiraSlashcommand implements ISlashCommand {
 
     constructor(private readonly app: IApp) { }
 
-    public async executor(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp): Promise<void> {
+    public async executor(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
         const [command] = context.getArguments();
 
         if (!command) {
@@ -24,7 +28,7 @@ export class JiraSlashcommand implements ISlashCommand {
 
         switch (command) {
             case CommandEnum.Connect:
-                this.processConnectCommand(context, read, modify, http);
+                this.processConnectCommand(context, read, modify, http, persis);
                 break;
 
             case CommandEnum.Help:
@@ -45,7 +49,8 @@ export class JiraSlashcommand implements ISlashCommand {
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
         const text =
             `These are the commands I can understand:
-            \`/jira connect\` Connects to a Jira instance
+            \`/jira install\` Instructions to install the app on a Jira instance
+            \`/jira connect\` Connects this room to a Jira project
             \`/jira ISSUEKEY-123\` Show information about a specific issues
             \`/jira help\` Shows this message`;
 
@@ -54,9 +59,11 @@ export class JiraSlashcommand implements ISlashCommand {
         modify.getCreator().finish(msg);
     }
 
-    private async processConnectCommand(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp): Promise<void> {
+    private async processConnectCommand(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
         const sender = await read.getUserReader().getById('rocket.cat');
         const room = context.getRoom();
+
+        const connectedProjects = await getConnectedProjects(read.getPersistenceReader(), room);
 
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 
@@ -72,16 +79,20 @@ export class JiraSlashcommand implements ISlashCommand {
             if (jiraResponse.total) {
                 const { origin: baseUrl } = new URL(url);
 
-                jiraResponse.values.forEach((project) => msg.addAttachment({
-                    title: {
-                        value: `${project.key} - ${project.name}`,
-                        link: `${baseUrl}/browse/${project.key}`,
-                    },
-                    text: project.description,
-                }));
+                jiraResponse.values.forEach((project) => {
+                    if (connectedProjects.hasOwnProperty(project.key)) { return; }
+
+                    msg.addAttachment({
+                        title: {
+                            value: `${project.key} - ${project.name}`,
+                            link: `${baseUrl}/browse/${project.key}`,
+                        },
+                        text: project.description,
+                    });
+                });
 
                 messageText =
-                    `You can connect to additional projects by typing \`/jira connect PROJECT_KEY\`
+                    `You can connect to Jira projects by typing \`/jira connect PROJECT_KEY\`
 
                     These are the currently available projects for you to connect to:`;
             } else {
@@ -90,14 +101,36 @@ export class JiraSlashcommand implements ISlashCommand {
 
             msg.setText(messageText);
 
-            this.app.getLogger().debug('processConnectCommand', { response });
         } else {
-            const { url, token } = await getUrlAndAuthToken(read, `/rest/api/3/project/search?query=${argument}`);
+            const { url, token } = await getUrlAndAuthToken(read, `/rest/api/3/project/search?query=${argument}&expand=description`);
             const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
 
             const jiraResponse = JSON.parse(response.content || '{}');
+            let messageText: string;
 
-            msg.addAttachment({ text: JSON.stringify(jiraResponse, null, 4)});
+            if (jiraResponse.total) {
+                const [ project ] = jiraResponse.values;
+                const { id, self, key, name, description } = project;
+
+                connectedProjects[key] = { id, self, key, name };
+                await persistConnectedProjects(persis, room, connectedProjects);
+
+                const { origin: baseUrl } = new URL(url);
+
+                msg.addAttachment({
+                    title: {
+                        value: `${key} - ${name}`,
+                        link: `${baseUrl}/browse/${key}`,
+                    },
+                    text: description,
+                });
+
+                messageText = `Jira project *${name}* successfully connected! This room will now be notified of certain events in the project`;
+            } else {
+                messageText = `Project with key "${argument}" could not be found`;
+            }
+
+            msg.setText(messageText);
         }
 
         modify.getCreator().finish(msg);

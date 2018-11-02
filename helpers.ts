@@ -1,4 +1,4 @@
-import { IMessageBuilder, IModify, IRead } from '@rocket.chat/apps-engine/definition/accessors';
+import { IMessageBuilder, IModify, IPersistenceRead, IRead, IPersistence } from '@rocket.chat/apps-engine/definition/accessors';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { IUser } from '@rocket.chat/apps-engine/definition/users';
@@ -46,4 +46,21 @@ export async function getUrlAndAuthToken(read: IRead, path: string, method: stri
         url: `${authData.baseUrl}${path}`,
         token,
     };
+}
+
+export async function getConnectedProjects(persistence: IPersistenceRead, room: IRoom): Promise<object> {
+    const roomAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.ROOM, room.id);
+    const projectsAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'projects');
+    const records = await persistence.readByAssociations([roomAssociation, projectsAssociation]);
+
+    return records[0] || {};
+}
+
+export async function persistConnectedProjects(persis: IPersistence, room: IRoom, connectedProjects: object): Promise<void> {
+    const roomAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.ROOM, room.id);
+    const projectsAssociation = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'projects');
+
+    await persis.removeByAssociations([roomAssociation, projectsAssociation]);
+
+    await persis.createWithAssociations(connectedProjects, [roomAssociation, projectsAssociation]);
 }
