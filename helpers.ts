@@ -13,16 +13,21 @@ import { AppSetting } from './app-settings';
 import { AppInfoEnum } from './enums/AppInfoEnum';
 import * as jwt from './jwt';
 
-export async function startNewMessageWithDefaultSenderConfig(modify: IModify, read: IRead, sender: IUser, room: IRoom): Promise<IMessageBuilder> {
+export async function startNewMessageWithDefaultSenderConfig(modify: IModify, read: IRead, sender: IUser, room?: IRoom): Promise<IMessageBuilder> {
     const settingsReader = read.getEnvironmentReader().getSettings();
     const userAliasSetting = await settingsReader.getValueById(AppSetting.UserAlias);
     const userAvatarSetting = await settingsReader.getValueById(AppSetting.UserAvatar);
 
-    return modify.getCreator().startMessage()
+    const msg = modify.getCreator().startMessage()
         .setSender(sender)
-        .setRoom(room)
         .setUsernameAlias(userAliasSetting)
         .setAvatarUrl(userAvatarSetting);
+
+    if (room) {
+        msg.setRoom(room);
+    }
+
+    return msg;
 }
 
 export function parseJiraDomainFromIssueUrl(issueUrl: string): string {
