@@ -19,6 +19,7 @@ export async function startNewMessageWithDefaultSenderConfig(modify: IModify, re
     const userAvatarSetting = await settingsReader.getValueById(AppSetting.UserAvatar);
 
     const msg = modify.getCreator().startMessage()
+        .setGroupable(false)
         .setSender(sender)
         .setUsernameAlias(userAliasSetting)
         .setAvatarUrl(userAvatarSetting);
