@@ -9,7 +9,7 @@
         "support": "www.github.com/rodrigok"
     },
     "name": "Jira Integration",
-    "nameSlug": "jitsi-integration",
+    "nameSlug": "jira-integration",
     "classFile": "index.ts",
     "description": "Jira inetgration"
 }

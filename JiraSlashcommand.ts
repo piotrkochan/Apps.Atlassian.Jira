@@ -11,6 +11,8 @@ import {
     persistConnectedProjects,
     startNewMessageWithDefaultSenderConfig,
 } from './helpers';
+import { JiraApp } from './index';
+import { sdk } from './sdk/index';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
@@ -18,7 +20,7 @@ export class JiraSlashcommand implements ISlashCommand {
     public i18nDescription = '';
     public providesPreview = false;
 
-    constructor(private readonly app: IApp) { }
+    constructor(private readonly app: JiraApp) { }
 
     public async executor(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
         const [command] = context.getArguments();
@@ -97,17 +99,15 @@ export class JiraSlashcommand implements ISlashCommand {
     }
 
     private async listProjects(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead): Promise<void> {
-        const { url, token } = await getUrlAndAuthToken(read, '/rest/api/3/project/search?expand=description');
-        const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
+        const jiraResponse = await sdk.listProjects(read, http);
 
-        const jiraResponse = JSON.parse(response.content || '{}');
         const messageText: Array<string> = [];
         const availableProjectList: Array<string> = [];
         const connectedProjectList: Array<string> = [];
 
-        if (jiraResponse.total) {
-            const { origin: baseUrl } = new URL(url);
+        const { origin: baseUrl } = new URL(jiraResponse.self);
 
+        if (jiraResponse.total) {
             jiraResponse.values.forEach((project) => {
                 const item = `- [${project.key} - ${project.name}](${baseUrl}/browse/${project.key}) ${project.description}`;
                 if (connectedProjects.hasOwnProperty(project.key)) {
@@ -136,10 +136,8 @@ export class JiraSlashcommand implements ISlashCommand {
 
     // tslint:disable-next-line:max-line-length
     private async connectProject(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead, argument: string, persis: IPersistence, room: IRoom): Promise<void> {
-        const { url, token } = await getUrlAndAuthToken(read, `/rest/api/3/project/search?query=${argument}&expand=description`);
-        const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
+        const jiraResponse = await sdk.getProject(read, http, argument);
 
-        const jiraResponse = JSON.parse(response.content || '{}');
         let messageText: string;
 
         if (jiraResponse.total) {
@@ -149,7 +147,7 @@ export class JiraSlashcommand implements ISlashCommand {
             connectedProjects[key] = { id, self, key, name };
             await persistConnectedProjects(persis, room, connectedProjects);
 
-            const { origin: baseUrl } = new URL(url);
+            const { origin: baseUrl } = new URL(jiraResponse.self);
 
             msg.addAttachment({
                 title: {
