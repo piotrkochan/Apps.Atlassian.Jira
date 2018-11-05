@@ -3,11 +3,11 @@ import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { ISlashCommand, SlashCommandContext } from '@rocket.chat/apps-engine/definition/slashcommands';
 import { URL } from 'url';
 
-import { JiraApp } from '.';
 import { CommandEnum } from './enums/CommandEnum';
+import { JiraApp } from './index';
 import { startNewMessageWithDefaultSenderConfig } from './lib/helpers';
 import { getConnectedProjects, persistConnectedProjects } from './lib/persistence';
-import { sdk } from './sdk';
+import { sdk } from './sdk/index';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
