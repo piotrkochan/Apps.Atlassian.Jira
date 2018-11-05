@@ -11,7 +11,8 @@ import { ApiEndpoint } from '@rocket.chat/apps-engine/definition/api/ApiEndpoint
 import { IApiEndpointInfo } from '@rocket.chat/apps-engine/definition/api/IApiEndpointInfo';
 
 import { IssueEventEnum } from './enums/IssueEventEnum';
-import { getConnectedProjects, parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from './helpers';
+import { parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from './lib/helpers';
+import { getConnectedProjects } from './lib/persistence';
 
 export class OnIssueEndpoint extends ApiEndpoint {
     public path: string = 'on_issue';

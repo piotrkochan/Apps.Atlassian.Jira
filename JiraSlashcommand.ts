@@ -1,18 +1,13 @@
 import { IHttp, IMessageBuilder, IModify, IPersistence, IRead } from '@rocket.chat/apps-engine/definition/accessors';
-import { IApp } from '@rocket.chat/apps-engine/definition/IApp';
+import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { ISlashCommand, SlashCommandContext } from '@rocket.chat/apps-engine/definition/slashcommands';
 import { URL } from 'url';
 
-import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
+import { JiraApp } from '.';
 import { CommandEnum } from './enums/CommandEnum';
-import {
-    getConnectedProjects,
-    getUrlAndAuthToken,
-    persistConnectedProjects,
-    startNewMessageWithDefaultSenderConfig,
-} from './helpers';
-import { JiraApp } from './index';
-import { sdk } from './sdk/index';
+import { startNewMessageWithDefaultSenderConfig } from './lib/helpers';
+import { getConnectedProjects, persistConnectedProjects } from './lib/persistence';
+import { sdk } from './sdk';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
