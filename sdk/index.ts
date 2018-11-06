@@ -1,4 +1,5 @@
-import { IHttp, IHttpResponse, IRead } from '@rocket.chat/apps-engine/definition/accessors';
+import { IHttp, IRead } from '@rocket.chat/apps-engine/definition/accessors';
+
 import { getUrlAndAuthToken } from '../lib/helpers';
 
 export interface IAvatarUrls {
@@ -21,7 +22,38 @@ export interface IJiraProject {
     style: string;
 }
 
-export interface IJiraResponse<T = object> {
+export interface IJiraField {
+    self: string;
+    name: string;
+    id: number;
+    [ key: string ]: any;
+}
+
+export interface IJiraIssueFields {
+    summary: string;
+    description: string;
+    project: IJiraProject;
+    attachment: Array<any>;
+    issuetype: IJiraField;
+    assignee: IJiraField;
+    priority: IJiraField;
+    status: IJiraField;
+}
+
+export interface IJiraIssue {
+    expand: string;
+    id: string;
+    self: string;
+    key: string;
+    fields: IJiraIssueFields;
+}
+
+export interface IJiraError {
+    errorMessages: Array<string>;
+    errors: object;
+}
+
+export interface IJiraSearchResponse<T = object> {
     self: string;
     maxResults: number;
     startAt: number;
