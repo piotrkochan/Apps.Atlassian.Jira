@@ -5,9 +5,9 @@ import { URL } from 'url';
 
 import { CommandEnum } from './enums/CommandEnum';
 import { JiraApp } from './index';
-import { startNewMessageWithDefaultSenderConfig } from './lib/helpers';
+import { startNewMessageWithDefaultSenderConfig, formatIssueMessage } from './lib/helpers';
 import { getConnectedProjects, persistConnectedProjects } from './lib/persistence';
-import { sdk } from './sdk/index';
+import { sdk, IJiraError, IJiraIssue } from './sdk/index';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
@@ -38,7 +38,7 @@ export class JiraSlashcommand implements ISlashCommand {
                 break;
 
             default:
-                // @TODO try to find an issue on Jira, the user might have typed an issue key
+                this.processIssueSearch(context, read, modify, http, persis);
                 break;
         }
 
@@ -69,6 +69,24 @@ export class JiraSlashcommand implements ISlashCommand {
 
         // @TODO:
         msg.setText('TODO');
+
+        modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
+    }
+
+    private async processIssueSearch(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
+        const [issueKey] = context.getArguments();
+        const jiraResponse = await sdk.getIssue(read, http, issueKey);
+
+        const sender = await read.getUserReader().getById('rocket.cat');
+        const room = context.getRoom();
+
+        const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
+
+        if ((jiraResponse as IJiraError).errors) {
+            msg.setText(`Issue ${issueKey} not found`);
+        } else {
+            formatIssueMessage(msg, (jiraResponse as IJiraIssue));
+        }
 
         modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
     }
@@ -121,7 +139,8 @@ export class JiraSlashcommand implements ISlashCommand {
             messageText.push(
                 `These are the currently available projects for you to connect to:\n ${availableProjectList.join('\n')}
 
-                You can connect to Jira projects by typing \`/jira connect PROJECT_KEY\``);
+                You can connect to Jira projects by typing \`/jira connect PROJECT_KEY\``
+            );
         } else {
             messageText.push('There are currently no available projects for you to connect :/');
         }

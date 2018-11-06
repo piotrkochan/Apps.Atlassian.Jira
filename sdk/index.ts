@@ -63,19 +63,27 @@ export interface IJiraSearchResponse<T = object> {
 }
 
 class Jira {
-    public async get(read: IRead, http: IHttp, path: string): Promise<IJiraResponse> {
+    public async get(read: IRead, http: IHttp, path: string): Promise<IJiraSearchResponse | IJiraIssue> {
         const { url, token } = await getUrlAndAuthToken(read, path);
         const response = await http.get(url, { headers: { Authorization: `JWT ${token}` } });
 
         return JSON.parse(response.content || '{}');
     }
 
-    public async listProjects(read: IRead, http: IHttp): Promise<IJiraResponse<IJiraProject>> {
-        return await this.get(read, http, '/rest/api/3/project/search?expand=description') as IJiraResponse<IJiraProject>;
+    public listProjects(read: IRead, http: IHttp): Promise<IJiraSearchResponse<IJiraProject>> {
+        return this.get(read, http, '/rest/api/3/project/search?expand=description') as Promise<IJiraSearchResponse<IJiraProject>>;
     }
 
-    public async getProject(read: IRead, http: IHttp, project: string): Promise<IJiraResponse<IJiraProject>> {
-        return await this.get(read, http, `/rest/api/3/project/search?query=${project}&expand=description`) as IJiraResponse<IJiraProject>;
+    public getProject(read: IRead, http: IHttp, project: string): Promise<IJiraSearchResponse<IJiraProject>> {
+        return this.get(read, http, `/rest/api/3/project/search?query=${project}&expand=description`) as Promise<IJiraSearchResponse<IJiraProject>>;
+    }
+
+    public getIssue(read: IRead, http: IHttp, issueKey: string): Promise<IJiraIssue | IJiraError> {
+        return this.get(
+            read,
+            http,
+            `/rest/api/2/issue/${issueKey}?fields=summary,attachment,status,assignee,priority,project,issuetype,description`
+        ) as Promise<IJiraIssue | IJiraError>;
     }
 }
 
