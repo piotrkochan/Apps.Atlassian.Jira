@@ -5,9 +5,9 @@ import { URL } from 'url';
 
 import { CommandEnum } from './enums/CommandEnum';
 import { JiraApp } from './index';
-import { startNewMessageWithDefaultSenderConfig, formatIssueMessage } from './lib/helpers';
-import { getConnectedProjects, persistConnectedProjects } from './lib/persistence';
-import { sdk, IJiraError, IJiraIssue } from './sdk/index';
+import { formatIssueMessage, startNewMessageWithDefaultSenderConfig } from './lib/helpers';
+import { getConnectedProjects, isProjectConnected, persistConnectedProjects } from './lib/persistence';
+import { IJiraError, IJiraIssue, sdk } from './sdk/index';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
@@ -82,7 +82,7 @@ export class JiraSlashcommand implements ISlashCommand {
 
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 
-        if ((jiraResponse as IJiraError).errors) {
+        if ((jiraResponse as IJiraError).errors || !isProjectConnected(read.getPersistenceReader(), (jiraResponse as IJiraIssue).fields.project, room)) {
             msg.setText(`Issue ${issueKey} not found`);
         } else {
             formatIssueMessage(msg, (jiraResponse as IJiraIssue));
