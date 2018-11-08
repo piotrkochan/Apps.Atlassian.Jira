@@ -12,7 +12,7 @@ import { IJiraError, IJiraIssue, sdk } from '../lib/sdk';
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';
     public i18nParamsExample = 'slashcommand_params';
-    public i18nDescription = '';
+    public i18nDescription = 'slashcommand_description';
     public providesPreview = false;
 
     constructor(private readonly app: JiraApp) { }
