@@ -88,7 +88,7 @@ export function formatIssueMessage(messageBuilder: IMessageBuilder, issue: IJira
             },
             {
                 title: 'Assignee',
-                value: `${issue.fields.assignee.displayName}`,
+                value: issue.fields.assignee ? `${issue.fields.assignee.displayName}` : 'Unassigned',
                 short: true,
             },
         ],
@@ -96,7 +96,7 @@ export function formatIssueMessage(messageBuilder: IMessageBuilder, issue: IJira
 }
 
 function formatJiraBodyString(body: string, attachment?: Array<any>): string {
-    return body
+    return (body || '')
         // Replaces Jira's headers (h1|h2|h3, etc...) with Rocket.Chat bold
         .replace(/^h\d\.\s([^\n]+)/gm, '*$1*')
 

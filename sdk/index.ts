@@ -31,11 +31,11 @@ export interface IJiraField {
 
 export interface IJiraIssueFields {
     summary: string;
-    description: string;
+    description?: string;
     project: IJiraProject;
     attachment: Array<any>;
     issuetype: IJiraField;
-    assignee: IJiraField;
+    assignee?: IJiraField;
     priority: IJiraField;
     status: IJiraField;
 }
