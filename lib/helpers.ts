@@ -95,8 +95,10 @@ export function formatIssueMessage(messageBuilder: IMessageBuilder, issue: IJira
     });
 }
 
-function formatJiraBodyString(body: string, attachment?: Array<any>): string {
-    return (body || '')
+function formatJiraBodyString(body?: string, attachment?: Array<any>): string {
+    if (!body) { return ''; }
+
+    return body
         // Replaces Jira's headers (h1|h2|h3, etc...) with Rocket.Chat bold
         .replace(/^h\d\.\s([^\n]+)/gm, '*$1*')
 

@@ -33,6 +33,7 @@ export class PostMessageSentHandler {
             const regex = new RegExp(`${key}\-[^\W]`, 'g');
             let result;
 
+            // tslint:disable-next-line
             while ((result = regex.exec(message.text || '')) !== null) {
                 const [issueKey] = result;
 
