@@ -10,9 +10,9 @@ import { IApiRequest, IApiResponse } from '@rocket.chat/apps-engine/definition/a
 import { ApiEndpoint } from '@rocket.chat/apps-engine/definition/api/ApiEndpoint';
 import { IApiEndpointInfo } from '@rocket.chat/apps-engine/definition/api/IApiEndpointInfo';
 
-import { WebhookEventEnum } from './enums/WebhookEventEnum';
-import { parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from './lib/helpers';
-import { getConnectedProjects } from './lib/persistence';
+import { WebhookEventEnum } from '../enums/WebhookEventEnum';
+import { parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from '../lib/helpers';
+import { getConnectedProjects } from '../lib/persistence';
 
 export class OnCommentEndpoint extends ApiEndpoint {
     public path: string = 'on_comment';

@@ -13,10 +13,10 @@ import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
 
 import { settings } from './app-settings';
 import { AuthEndpoint, InstallEndpoint, ManifestEndpoint, SampleEndpoint } from './endpoints';
+import { OnCommentEndpoint } from './endpoints/onComment';
+import { OnIssueEndpoint } from './endpoints/onIssue';
 import { PostMessageSentHandler } from './handlers/PostMessageSentHandler';
 import { JiraSlashcommand } from './JiraSlashcommand';
-import { OnCommentEndpoint } from './onComment';
-import { OnIssueEndpoint } from './onIssue';
 
 // import { JitsiSlashCommand } from './slashcommand';
 export class JiraApp extends App implements IPostMessageSent {
