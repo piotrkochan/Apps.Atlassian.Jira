@@ -12,7 +12,6 @@ import { IMessage, IPostMessageSent } from '@rocket.chat/apps-engine/definition/
 import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
 
 import { settings } from './app-settings';
-import { AuthEndpoint, SampleEndpoint } from './endpoints';
 import { InstallEndpoint } from './endpoints/install';
 import { ManifestEndpoint } from './endpoints/manifest';
 import { OnCommentEndpoint } from './endpoints/onComment';
@@ -20,7 +19,6 @@ import { OnIssueEndpoint } from './endpoints/onIssue';
 import { PostMessageSentHandler } from './handlers/PostMessageSentHandler';
 import { JiraSlashcommand } from './JiraSlashcommand';
 
-// import { JitsiSlashCommand } from './slashcommand';
 export class JiraApp extends App implements IPostMessageSent {
     constructor(info: IAppInfo, logger: ILogger) {
         super(info, logger);
@@ -33,16 +31,13 @@ export class JiraApp extends App implements IPostMessageSent {
     }
 
     protected async extendConfiguration(configuration: IConfigurationExtend): Promise<void> {
-        // await configuration.slashCommands.provideSlashCommand(new JitsiSlashCommand(this));
         await configuration.api.provideApi({
             visibility: ApiVisibility.PRIVATE,
             security: ApiSecurity.UNSECURE,
             endpoints: [
                 new ManifestEndpoint(this),
                 new InstallEndpoint(this),
-                new AuthEndpoint(this),
                 new OnIssueEndpoint(this),
-                new SampleEndpoint(this),
                 new OnCommentEndpoint(this),
             ],
         });
