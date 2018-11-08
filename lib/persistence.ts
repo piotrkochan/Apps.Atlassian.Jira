@@ -1,7 +1,7 @@
 import { IPersistence, IPersistenceRead } from '@rocket.chat/apps-engine/definition/accessors';
 import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
-import { IJiraProject } from '../sdk/index';
+import { IJiraProject } from './sdk';
 
 export interface IConnectedProjectsRecord {
     room: string;

@@ -13,7 +13,7 @@ import { URL } from 'url';
 import { AppSetting } from '../app-settings';
 import { AppInfoEnum } from '../enums/AppInfoEnum';
 import * as jwt from '../jwt';
-import { IJiraIssue } from '../sdk/index';
+import { IJiraIssue } from './sdk';
 
 export async function startNewMessageWithDefaultSenderConfig(modify: IModify, read: IRead, sender: IUser, room?: IRoom): Promise<IMessageBuilder> {
     const settingsReader = read.getEnvironmentReader().getSettings();

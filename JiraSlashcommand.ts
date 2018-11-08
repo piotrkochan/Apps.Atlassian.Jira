@@ -7,7 +7,7 @@ import { CommandEnum } from './enums/CommandEnum';
 import { JiraApp } from './index';
 import { formatIssueMessage, startNewMessageWithDefaultSenderConfig } from './lib/helpers';
 import { getConnectedProjects, isProjectConnected, persistConnectedProjects } from './lib/persistence';
-import { IJiraError, IJiraIssue, sdk } from './sdk/index';
+import { IJiraError, IJiraIssue, sdk } from './lib/sdk';
 
 export class JiraSlashcommand implements ISlashCommand {
     public command = 'jira';

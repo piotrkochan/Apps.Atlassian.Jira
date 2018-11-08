@@ -1,6 +1,6 @@
 import { IHttp, IRead } from '@rocket.chat/apps-engine/definition/accessors';
 
-import { getUrlAndAuthToken } from '../lib/helpers';
+import { getUrlAndAuthToken } from './helpers';
 
 export interface IAvatarUrls {
     '48x48': string;

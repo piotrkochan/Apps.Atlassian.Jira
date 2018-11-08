@@ -4,7 +4,7 @@ import { IMessage } from '@rocket.chat/apps-engine/definition/messages';
 import { JiraApp } from '../index';
 import { formatIssueMessage, startNewMessageWithDefaultSenderConfig } from '../lib/helpers';
 import { getConnectedProjects, getInstallationData } from '../lib/persistence';
-import { IJiraError, IJiraIssue, sdk } from '../sdk/index';
+import { IJiraError, IJiraIssue, sdk } from '../lib/sdk';
 
 export class PostMessageSentHandler {
     constructor(
