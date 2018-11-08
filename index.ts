@@ -12,7 +12,8 @@ import { IMessage, IPostMessageSent } from '@rocket.chat/apps-engine/definition/
 import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
 
 import { settings } from './app-settings';
-import { AuthEndpoint, InstallEndpoint, ManifestEndpoint, SampleEndpoint } from './endpoints';
+import { AuthEndpoint, InstallEndpoint, SampleEndpoint } from './endpoints';
+import { ManifestEndpoint } from './endpoints/manifest';
 import { OnCommentEndpoint } from './endpoints/onComment';
 import { OnIssueEndpoint } from './endpoints/onIssue';
 import { PostMessageSentHandler } from './handlers/PostMessageSentHandler';
