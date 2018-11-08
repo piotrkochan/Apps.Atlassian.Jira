@@ -17,7 +17,7 @@ import { ManifestEndpoint } from './endpoints/manifest';
 import { OnCommentEndpoint } from './endpoints/onComment';
 import { OnIssueEndpoint } from './endpoints/onIssue';
 import { PostMessageSentHandler } from './handlers/PostMessageSentHandler';
-import { JiraSlashcommand } from './JiraSlashcommand';
+import { JiraSlashcommand } from './slashcommands/jira';
 
 export class JiraApp extends App implements IPostMessageSent {
     constructor(info: IAppInfo, logger: ILogger) {
