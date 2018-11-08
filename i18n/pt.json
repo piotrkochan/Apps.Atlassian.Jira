@@ -1,6 +1,6 @@
 {
     "slashcommand_params": "install, connect, DEMO-123, help",
-    "slashcommand_description": "Generate an Jitsi video meeting URL.",
+    "slashcommand_description": "Interage com o App Jira. Digite `/jira help` para mais detalhes",
     "user_alias_label": "Alias de usuário do JiraApp",
     "user_alias_description": "O username que será mostrado nas mensagens enviadas pelo App",
     "user_avatar_label": "Avatar do JiraApp",
