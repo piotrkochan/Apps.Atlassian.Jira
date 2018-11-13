@@ -12,7 +12,7 @@ import { URL } from 'url';
 
 import { AppSetting } from '../app-settings';
 import { AppInfoEnum } from '../enums/AppInfoEnum';
-import * as jwt from './jwt';
+import * as jwt from '../lib/jwt';
 import { IJiraIssue } from './sdk';
 
 export async function startNewMessageWithDefaultSenderConfig(modify: IModify, read: IRead, sender: IUser, room?: IRoom): Promise<IMessageBuilder> {
