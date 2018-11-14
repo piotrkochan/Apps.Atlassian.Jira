@@ -72,8 +72,25 @@ export class JiraSlashcommand implements ISlashCommand {
 
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 
-        // @TODO:
-        msg.setText('TODO');
+        const [manifestEndpoint] = this.app.getAccessors().providedApiEndpoints.filter((endpoint) => endpoint.path === 'manifest.json');
+        const siteUrl = await read.getEnvironmentReader().getServerSettings().getValueById('Site_Url');
+
+        msg.setText(
+            `These are the steps to install the Jira App in your Jira Cloud instance:
+
+            - Log in to your Jira, as an administrator
+            - Go to *Jira Settings* > *Apps* > *Manage apps*
+            - Click on *Settings* below the "User-installed apps" list
+            - Check the "Enable development mode" checkbox and click on *Save*
+            - Click on *Upload app*
+            - In the field "From this URL", paste the following URL:
+                \`${siteUrl}${manifestEndpoint.computedPath}\`
+            - Click on *Upload*
+
+            Done!
+            Now this app will be installed on the instance
+            The next step is to connect to the available Jira projects so you start receiving notifications`
+        );
 
         modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
     }
@@ -88,7 +105,7 @@ export class JiraSlashcommand implements ISlashCommand {
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 
         if ((jiraResponse as IJiraError).errors || !isProjectConnected(read.getPersistenceReader(), (jiraResponse as IJiraIssue).fields.project, room)) {
-            msg.setText(`Issue ${issueKey} not found`);
+            msg.setText(`Issue "${issueKey}" not found`);
         } else {
             formatIssueMessage(msg, (jiraResponse as IJiraIssue));
         }

@@ -1,4 +1,5 @@
 import {
+    IAppAccessors,
     IConfigurationExtend,
     IHttp,
     ILogger,
@@ -20,8 +21,8 @@ import { PostMessageSentHandler } from './handlers/PostMessageSentHandler';
 import { JiraSlashcommand } from './slashcommands/jira';
 
 export class JiraApp extends App implements IPostMessageSent {
-    constructor(info: IAppInfo, logger: ILogger) {
-        super(info, logger);
+    constructor(info: IAppInfo, logger: ILogger, accessors: IAppAccessors) {
+        super(info, logger, accessors);
     }
 
     public async executePostMessageSent(message: IMessage, read: IRead, http: IHttp, persistence: IPersistence, modify: IModify): Promise<void> {
