@@ -29,6 +29,10 @@ export class JiraSlashcommand implements ISlashCommand {
                 this.processConnectCommand(context, read, modify, http, persis);
                 break;
 
+            case CommandEnum.Disconnect:
+                this.processDisconnectCommand(context, read, modify, http, persis);
+                break;
+
             case CommandEnum.Help:
                 this.processHelpCommand(context, read, modify);
                 break;
@@ -53,6 +57,7 @@ export class JiraSlashcommand implements ISlashCommand {
             `These are the commands I can understand:
             \`/jira install\` Instructions to install the app on a Jira instance
             \`/jira connect\` Connects this room to a Jira project
+            \`/jira disconnect\` Disconnects this room from a Jira project
             \`/jira ISSUEKEY-123\` Show information about a specific issues
             \`/jira help\` Shows this message`;
 
@@ -91,6 +96,26 @@ export class JiraSlashcommand implements ISlashCommand {
         modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
     }
 
+    private async processDisconnectCommand(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
+        const sender = await read.getUserReader().getById('rocket.cat');
+        const room = context.getRoom();
+
+        const persistenceRecords = await getConnectedProjects(read.getPersistenceReader(), room);
+        const connectedProjects = persistenceRecords.length ? persistenceRecords[0].connectedProjects : {};
+
+        const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
+
+        const [, argument] = context.getArguments();
+
+        if (!argument) {
+            this.listProjectsToDisconnect(connectedProjects, msg, http, read);
+        } else {
+            await this.disconnectProject(connectedProjects, argument, msg, persis, room);
+        }
+
+        modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
+    }
+
     private async processConnectCommand(context: SlashCommandContext, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<void> {
         const sender = await read.getUserReader().getById('rocket.cat');
         const room = context.getRoom();
@@ -103,7 +128,7 @@ export class JiraSlashcommand implements ISlashCommand {
         const [, argument] = context.getArguments();
 
         if (!argument) {
-            await this.listProjects(connectedProjects, msg, http, read);
+            await this.listProjectsToConnect(connectedProjects, msg, http, read);
         } else {
             await this.connectProject(connectedProjects, msg, http, read, argument, persis, room);
         }
@@ -111,7 +136,7 @@ export class JiraSlashcommand implements ISlashCommand {
         modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
     }
 
-    private async listProjects(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead): Promise<void> {
+    private async listProjectsToConnect(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead): Promise<void> {
         const jiraResponse = await sdk.listProjects(read, http);
 
         const messageText: Array<string> = [];
@@ -148,6 +173,28 @@ export class JiraSlashcommand implements ISlashCommand {
         msg.setText(messageText.join('\n\n'));
     }
 
+    private async listProjectsToDisconnect(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead): Promise<void> {
+        const projects = Object.values(connectedProjects);
+
+        if (projects.length) {
+            const projectText: Array<string> = [];
+
+            projects.forEach((project) => {
+                const { origin: baseUrl } = new URL(project.self);
+
+                projectText.push(`[${project.key} - ${project.name}](${baseUrl}/browse/${project.key})`);
+            });
+
+            msg.setText(
+                `These are the currently connected projects in this room:\n${projectText.join('\n')}
+
+                You can disconnect a Jira project by typing \`/jira disconnect PROJECT_KEY\``
+            );
+        } else {
+            msg.setText('There are no connected projects in this room');
+        }
+    }
+
     // tslint:disable-next-line:max-line-length
     private async connectProject(connectedProjects: object, msg: IMessageBuilder, http: IHttp, read: IRead, argument: string, persis: IPersistence, room: IRoom): Promise<void> {
         const jiraResponse = await sdk.getProject(read, http, argument);
@@ -177,5 +224,20 @@ export class JiraSlashcommand implements ISlashCommand {
         }
 
         msg.setText(messageText);
+    }
+
+    private async disconnectProject(connectedProjects: object, argument: string, msg: IMessageBuilder, persis: IPersistence, room: IRoom): Promise<void> {
+        if (!connectedProjects.hasOwnProperty(argument.toUpperCase())) {
+            msg.setText(`Project with key "${argument}" is not connected`);
+            return;
+        }
+
+        const project = connectedProjects[argument.toUpperCase()];
+
+        delete connectedProjects[argument.toUpperCase()];
+
+        await persistConnectedProjects(persis, room, connectedProjects);
+
+        msg.setText(`Jira project *${project.name}* successfully disconnected! This room will no longer receive notifications about it`);
     }
 }
