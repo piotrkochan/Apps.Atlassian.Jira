@@ -1,4 +1,5 @@
 import { IHttp, IMessageBuilder, IModify, IPersistence, IRead } from '@rocket.chat/apps-engine/definition/accessors';
+import { RocketChatAssociationModel, RocketChatAssociationRecord } from '@rocket.chat/apps-engine/definition/metadata';
 import { IRoom } from '@rocket.chat/apps-engine/definition/rooms';
 import { ISlashCommand, SlashCommandContext } from '@rocket.chat/apps-engine/definition/slashcommands';
 import { URL } from 'url';
@@ -72,25 +73,32 @@ export class JiraSlashcommand implements ISlashCommand {
 
         const msg = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
 
-        const [manifestEndpoint] = this.app.getAccessors().providedApiEndpoints.filter((endpoint) => endpoint.path === 'manifest.json');
-        const siteUrl = await read.getEnvironmentReader().getServerSettings().getValueById('Site_Url');
+        const association = new RocketChatAssociationRecord(RocketChatAssociationModel.MISC, 'auth');
+        const [auth] = await read.getPersistenceReader().readByAssociation(association) as Array<any>;
 
-        msg.setText(
-            `These are the steps to install the Jira App in your Jira Cloud instance:
+        if (auth) {
+            msg.setText(`This Jira App is already installed in a Jira instance at ${auth.baseUrl}`);
+        } else {
+            const [manifestEndpoint] = this.app.getAccessors().providedApiEndpoints.filter((endpoint) => endpoint.path === 'manifest.json');
+            const siteUrl = await read.getEnvironmentReader().getServerSettings().getValueById('Site_Url');
 
-            - Log in to your Jira, as an administrator
-            - Go to *Jira Settings* > *Apps* > *Manage apps*
-            - Click on *Settings* below the "User-installed apps" list
-            - Check the "Enable development mode" checkbox and click on *Save*
-            - Click on *Upload app*
-            - In the field "From this URL", paste the following URL:
-                \`${siteUrl}${manifestEndpoint.computedPath}\`
-            - Click on *Upload*
+            msg.setText(
+                `These are the steps to install the Jira App in your Jira Cloud instance:
 
-            Done!
-            Now this app will be installed on the instance
-            The next step is to connect to the available Jira projects so you start receiving notifications`
-        );
+                - Log in to your Jira, as an administrator
+                - Go to *Jira Settings* > *Apps* > *Manage apps*
+                - Click on *Settings* below the "User-installed apps" list
+                - Check the "Enable development mode" checkbox and click on *Save*
+                - Click on *Upload app*
+                - In the field "From this URL", paste the following URL:
+                    \`${siteUrl}${manifestEndpoint.computedPath}\`
+                - Click on *Upload*
+
+                Done!
+                Now this app will be installed on the instance
+                The next step is to connect to the available Jira projects so you start receiving notifications`
+            );
+        }
 
         modify.getNotifier().notifyUser(context.getSender(), msg.getMessage());
     }
