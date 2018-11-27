@@ -96,7 +96,9 @@ export class JiraSlashcommand implements ISlashCommand {
 
                 Done!
                 Now this app will be installed on the instance
-                The next step is to connect to the available Jira projects so you start receiving notifications`
+                The next step is to connect to the available Jira projects so you start receiving notifications
+
+                *Note*: be sure to uncheck the "Enable development mode" checkbox after the installation process`
             );
         }
 
