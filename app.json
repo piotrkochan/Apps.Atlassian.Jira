@@ -1,15 +1,15 @@
 {
     "id": "3b387ba9-f57c-44c6-9810-8c0256abd64d",
-    "version": "0.0.1",
-    "requiredApiVersion": "^1.1.1",
+    "version": "0.1.0",
+    "requiredApiVersion": "^1.3.0",
     "iconFile": "icon.png",
     "author": {
         "name": "Rodrigo Nascimento",
         "homepage": "www.github.com/rodrigok",
         "support": "www.github.com/rodrigok"
     },
-    "name": "Jira Integration",
-    "nameSlug": "jitsi-integration",
+    "name": "Jira Cloud Integration",
+    "nameSlug": "jira-cloud-integration",
     "classFile": "index.ts",
-    "description": "Jira inetgration"
+    "description": "Jira Cloud integration"
 }

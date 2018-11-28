@@ -10,33 +10,36 @@ import { IApiRequest, IApiResponse } from '@rocket.chat/apps-engine/definition/a
 import { ApiEndpoint } from '@rocket.chat/apps-engine/definition/api/ApiEndpoint';
 import { IApiEndpointInfo } from '@rocket.chat/apps-engine/definition/api/IApiEndpointInfo';
 
-import { WebhookEventEnum } from './enums/WebhookEventEnum';
-import { parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from './helpers';
+import { WebhookEventEnum } from '../enums/WebhookEventEnum';
+import { parseJiraDomainFromIssueUrl, startNewMessageWithDefaultSenderConfig } from '../lib/helpers';
+import { getConnectedProjects } from '../lib/persistence';
 
 export class OnCommentEndpoint extends ApiEndpoint {
     public path: string = 'on_comment';
 
     // tslint:disable-next-line:max-line-length
     public async post(request: IApiRequest, endpoint: IApiEndpointInfo, read: IRead, modify: IModify, http: IHttp, persis: IPersistence): Promise<IApiResponse> {
-        const sender = await read.getUserReader().getById('rocket.cat');
-        const room = await read.getRoomReader().getById('GENERAL');
+        const persistenceRecords = await getConnectedProjects(read.getPersistenceReader());
 
-        if (!sender || !room) {
-
-            if (!sender) {
-                this.app.getLogger().error('No `sender` configured for the app');
-            }
-
-            if (!room) {
-                this.app.getLogger().error('No `room` configured for the app');
-            }
+        if (!persistenceRecords.length) {
+            this.app.getLogger().log('Notification received, but there are no connected rooms to send a message');
 
             return {
                 status: HttpStatusCode.OK,
             };
         }
 
-        const messageBuilder = await startNewMessageWithDefaultSenderConfig(modify, read, sender, room);
+        const sender = await read.getUserReader().getById('rocket.cat');
+
+        if (!sender) {
+            this.app.getLogger().error('No `sender` configured for the app');
+
+            return {
+                status: HttpStatusCode.OK,
+            };
+        }
+
+        const messageBuilder = await startNewMessageWithDefaultSenderConfig(modify, read, sender);
         let sendMessage = true;
 
         switch (request.content.webhookEvent) {
@@ -55,7 +58,21 @@ export class OnCommentEndpoint extends ApiEndpoint {
         }
 
         if (sendMessage) {
-            modify.getCreator().finish(messageBuilder);
+            const { key: projectKey } = request.content.issue.fields.project;
+
+            persistenceRecords.forEach(async (record) => {
+                if (!record.connectedProjects.hasOwnProperty(projectKey)) { return; }
+
+                const room = await read.getRoomReader().getById(record.room);
+
+                if (!room) {
+                    this.app.getLogger().error(`Invalid room id "${record.room}`);
+                    return;
+                }
+
+                messageBuilder.setRoom(room);
+                modify.getCreator().finish(messageBuilder);
+            });
         }
 
         return {

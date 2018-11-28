@@ -1,6 +1,6 @@
 {
-    "params_example": "[room name (optional)]",
-    "command_description": "Generate an Jitsi video meeting URL.",
+    "slashcommand_params": "install, connect, DEMO-123, help",
+    "slashcommand_description": "Interacts with the Jira App. Type `/jira help` for more info",
     "user_alias_label": "JiraApp Username Alias",
     "user_alias_description": "The username alias that will be shown in the messages sent by this app",
     "user_avatar_label": "JiraApp Avatar",
