@@ -16,7 +16,7 @@ export class PostMessageSentHandler {
     ) {}
 
     public async run(message: IMessage) {
-        if (!message.text) { return; }
+        if (!message.text || !message.text.match(/[A-Z]+\-[0-9]+/)) { return; }
 
         const installationData = await getInstallationData(this.read.getPersistenceReader());
 
@@ -30,7 +30,7 @@ export class PostMessageSentHandler {
         const mentionedIssues: Array<string> = [];
 
         projectKeys.forEach((key) => {
-            const regex = new RegExp(`${key}\-[^\W]`, 'g');
+            const regex = new RegExp(`${key}\-[0-9]+`, 'g');
             let result;
 
             // tslint:disable-next-line
