@@ -4,9 +4,9 @@
     "requiredApiVersion": "^1.3.0",
     "iconFile": "icon.png",
     "author": {
-        "name": "Rodrigo Nascimento",
-        "homepage": "www.github.com/rodrigok",
-        "support": "www.github.com/rodrigok"
+        "name": "Rocket.Chat",
+        "homepage": "https://rocket.chat",
+        "support": "https://github.com/RocketChat/Apps.Atlassian.Jira"
     },
     "name": "Jira Cloud Integration",
     "nameSlug": "jira-cloud-integration",
